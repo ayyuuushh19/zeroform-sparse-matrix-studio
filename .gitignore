@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------
+# .gitignore — ZEROFORM Sparse Matrix Studio
+# Tracks source and tests only; ignores all build artifacts.
+# ---------------------------------------------------------------
+
+# Compiled executables (Windows)
+*.exe
+
+# Object files and dependency files
+*.o
+*.d
+
+# Static and import libraries produced by MinGW
+*.a
+*.lib
+
+# Dynamic libraries
+*.dll
+*.so
+*.dylib
+
+# Build output directories
+build/
+dist/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Flask / Werkzeug session files
+flask_session/
+
+# Editor and IDE metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS metadata
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.log
