@@ -3,8 +3,10 @@
 # Tracks source and tests only; ignores all build artifacts.
 # ---------------------------------------------------------------
 
-# Compiled executables (Windows)
+# Compiled executables (Windows & Linux)
 *.exe
+c_engine/zeroform
+c_engine/zeroform_*
 
 # Object files and dependency files
 *.o
@@ -33,9 +35,15 @@ __pycache__/
 venv/
 .venv/
 env/
+.pytest_cache/
 
 # Flask / Werkzeug session files
 flask_session/
+
+# Local environment & secret files
+.env
+.env.*
+*.local
 
 # Editor and IDE metadata
 .vscode/

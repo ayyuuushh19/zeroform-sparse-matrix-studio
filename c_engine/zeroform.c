@@ -124,13 +124,17 @@ static ZF_Status da_grow(DynamicArray *da, size_t min_cap)
 const char *zf_status_str(ZF_Status s)
 {
     switch (s) {
-        case ZF_OK:           return "ZF_OK";
-        case ZF_ERR_NOMEM:    return "ZF_ERR_NOMEM";
-        case ZF_ERR_INDEX:    return "ZF_ERR_INDEX";
-        case ZF_ERR_EMPTY:    return "ZF_ERR_EMPTY";
-        case ZF_ERR_PARAM:    return "ZF_ERR_PARAM";
-        case ZF_ERR_OVERFLOW: return "ZF_ERR_OVERFLOW";
-        default:              return "ZF_ERR_UNKNOWN";
+        case ZF_OK:            return "ZF_OK";
+        case ZF_ERR_NOMEM:     return "ZF_ERR_NOMEM";
+        case ZF_ERR_INDEX:     return "ZF_ERR_INDEX";
+        case ZF_ERR_EMPTY:     return "ZF_ERR_EMPTY";
+        case ZF_ERR_PARAM:     return "ZF_ERR_PARAM";
+        case ZF_ERR_OVERFLOW:  return "ZF_ERR_OVERFLOW";
+        case ZF_ERR_DUPLICATE: return "ZF_ERR_DUPLICATE";
+        case ZF_ERR_NOT_FOUND: return "ZF_ERR_NOT_FOUND";
+        case ZF_ERR_VALUE:     return "ZF_ERR_VALUE";
+        case ZF_ERR_DIMENSION: return "ZF_ERR_DIMENSION";
+        default:               return "ZF_ERR_UNKNOWN";
     }
 }
 

@@ -5,8 +5,8 @@
  *   - ZF_Status  : error/success codes used by every public function
  *   - DynamicArray: a generic, resizable array for any fixed-size element
  *
- * Stage 1 scope: DynamicArray only.
- * Stages 2+: Triplet, SparseMatrix, DenseMatrix will be added here.
+ * Stage 1: DynamicArray.
+ * Stage 2: Triplet, DenseMatrix, SparseMatrix (see matrix.h).
  *
  * Memory ownership rule (read before using this API)
  * ─────────────────────────────────────────────────
@@ -43,12 +43,18 @@
  * ZF_OK is always zero so callers can write:  if (da_append(...)) { error }
  */
 typedef enum {
-    ZF_OK            =  0,  /* operation succeeded                          */
-    ZF_ERR_NOMEM     = -1,  /* malloc / realloc returned NULL               */
-    ZF_ERR_INDEX     = -2,  /* index out of valid range                     */
-    ZF_ERR_EMPTY     = -3,  /* operation requires a non-empty array         */
-    ZF_ERR_PARAM     = -4,  /* invalid parameter (e.g. elem_size == 0)      */
-    ZF_ERR_OVERFLOW  = -5   /* size calculation would overflow SIZE_MAX      */
+    ZF_OK             =  0,  /* operation succeeded                          */
+    ZF_ERR_NOMEM      = -1,  /* malloc / realloc returned NULL               */
+    ZF_ERR_INDEX      = -2,  /* index out of valid range                     */
+    ZF_ERR_EMPTY      = -3,  /* operation requires a non-empty array         */
+    ZF_ERR_PARAM      = -4,  /* invalid parameter (e.g. elem_size == 0)      */
+    ZF_ERR_OVERFLOW   = -5,  /* size calculation would overflow SIZE_MAX      */
+    /* Stage 2 additions — values below -5; existing semantics unchanged.    */
+    ZF_ERR_DUPLICATE  = -6,  /* coordinate already present (sparse insert)   */
+    ZF_ERR_NOT_FOUND  = -7,  /* coordinate absent (sparse delete/search)     */
+    ZF_ERR_VALUE      = -8,  /* non-finite or semantically invalid value      */
+    /* Stage 3 additions                                                     */
+    ZF_ERR_DIMENSION  = -9   /* matrix dimension mismatch (e.g. add/multiply) */
 } ZF_Status;
 
 /* Human-readable string for a status code.  Never returns NULL. */

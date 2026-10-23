@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZEROFORM — Sparse Matrix Studio</title>
+  <meta name="description" content="ZEROFORM is a high-performance Sparse Matrix Studio with C11 computational core, Triplet storage, and theoretical memory analysis.">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- ── 1. Application Header ─────────────────────────────────────────── -->
+  <header class="app-header" role="banner">
+    <div class="brand-group">
+      <div class="brand-icon" aria-hidden="true">
+        <!-- Stylized 3x3 sparse matrix geometric glyph -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="2" width="14" height="14" rx="2" stroke="currentColor"/>
+          <circle cx="5.5" cy="5.5" r="1.5" fill="currentColor"/>
+          <circle cx="12.5" cy="9" r="1.5" fill="currentColor"/>
+          <circle cx="9" cy="12.5" r="1.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="brand-titles">
+        <span class="brand-title">ZEROFORM</span>
+        <span class="brand-subtitle">Sparse Matrix Studio</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="workspace-badge" title="Active C11 Computation Core">
+        <span aria-hidden="true">⚙</span>
+        <span>WORKSPACE: ACTIVE (STAGE 4 C-CORE)</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Real C Engine Connection Badge -->
+      <div id="status-badge" class="health-badge" role="status" aria-live="polite">
+        <span class="health-dot" id="status-dot"></span>
+        <span id="status-text">CONNECTING...</span>
+      </div>
+
+      <!-- Help / Architecture Modal Trigger -->
+      <button id="btn-open-help" class="btn btn-subtle btn-sm" aria-haspopup="dialog" aria-controls="help-dialog">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span>SPEC</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── 2. Main Workbench Container ───────────────────────────────────── -->
+  <main class="workbench-container" role="main">
+
+    <!-- Top Control & Preset Strip -->
+    <div class="control-strip">
+      <div class="strip-group">
+        <span class="strip-label">PRESET DATASET:</span>
+        <select id="sample-preset-select" class="form-input" style="height: 28px; font-size: 11px;" aria-label="Select sample dataset">
+          <option value="sparse_sample">Sparse Example (4×5, NNZ: 3)</option>
+          <option value="addition_pair">Addition Compatible Pair (2×3)</option>
+          <option value="multiplication_pair">Rectangular Multiplication Pair (2×3 × 3×2)</option>
+        </select>
+        <button id="btn-load-preset" class="btn btn-sm">LOAD SAMPLE</button>
+      </div>
+
+      <div class="strip-group">
+        <span class="panel-tag" title="User Interface displays 1-based row and column coordinates">COORDINATES: 1-BASED DISPLAY</span>
+        <span class="panel-tag" title="C engine processes 0-based coordinate protocol">ENGINE: 0-BASED PROTOCOL</span>
+        <div class="strip-group" style="margin-left: 8px;">
+          <button id="btn-toggle-matrix-b" class="btn btn-sm btn-subtle" aria-pressed="false">
+            <span>+ TOGGLE MATRIX B</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dual Column Primary Workbench Grid -->
+    <div class="workbench-grid">
+
+      <!-- Left Column: Matrix Workspace & Command Deck -->
+      <div class="matrix-workspace">
+
+        <!-- Matrix A Viewport Card -->
+        <section class="matrix-viewport-card" aria-labelledby="matrix-a-title">
+          <div class="panel-header">
+            <span id="matrix-a-title" class="panel-title">
+              <span style="color: var(--accent-cobalt);">■</span> MATRIX A
+            </span>
+            <div class="matrix-dims">
+              <label for="dim-a-rows" class="form-label" style="margin: 0;">ROWS</label>
+              <input type="number" id="dim-a-rows" class="dim-input" value="3" min="1" max="100000" step="1">
+              <span style="color: var(--text-muted);">×</span>
+              <label for="dim-a-cols" class="form-label" style="margin: 0;">COLS</label>
+              <input type="number" id="dim-a-cols" class="dim-input" value="3" min="1" max="100000" step="1">
+              <button id="btn-resize-a" class="btn btn-sm" style="margin-left: 4px;">APPLY</button>
+            </div>
+            <div class="strip-group">
+              <button id="btn-paste-a" class="btn btn-sm btn-subtle" title="Paste TSV/CSV data into Matrix A">PASTE</button>
+              <button id="btn-view-a-dense" class="btn btn-sm btn-subtle active" aria-pressed="true">GRID</button>
+              <button id="btn-view-a-triplets" class="btn btn-sm btn-subtle" aria-pressed="false">TRIPLETS</button>
+            </div>
+          </div>
+
+          <!-- Interactive Grid Scrollable Container -->
+          <div id="container-a-grid" class="matrix-scroll-wrapper" tabindex="0" role="region" aria-label="Matrix A interactive drafting grid">
+            <table id="table-matrix-a" class="matrix-grid-table" aria-label="Matrix A interactive drafting grid">
+              <!-- Rendered dynamically by app.js -->
+            </table>
+          </div>
+
+          <!-- Alternative Triplet View Container (Hidden initially) -->
+          <div id="container-a-triplets" class="triplet-table-wrapper" style="display: none; padding: var(--space-sm);" tabindex="0" role="region" aria-label="Matrix A triplets stream">
+            <table class="triplet-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>ROW (1-BASED)</th>
+                  <th>COL (1-BASED)</th>
+                  <th>VALUE</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-matrix-a-triplets">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Matrix B Viewport Card (Toggled when needed for Addition/Multiplication) -->
+        <section id="panel-matrix-b" class="matrix-viewport-card" style="display: none;" aria-labelledby="matrix-b-title">
+          <div class="panel-header">
+            <span id="matrix-b-title" class="panel-title">
+              <span style="color: var(--accent-orange);">■</span> MATRIX B (SECONDARY OPERAND)
+            </span>
+            <div class="matrix-dims">
+              <label for="dim-b-rows" class="form-label" style="margin: 0;">ROWS</label>
+              <input type="number" id="dim-b-rows" class="dim-input" value="3" min="1" max="100000" step="1">
+              <span style="color: var(--text-muted);">×</span>
+              <label for="dim-b-cols" class="form-label" style="margin: 0;">COLS</label>
+              <input type="number" id="dim-b-cols" class="dim-input" value="3" min="1" max="100000" step="1">
+              <button id="btn-resize-b" class="btn btn-sm" style="margin-left: 4px;">APPLY</button>
+            </div>
+            <div class="strip-group">
+              <button id="btn-paste-b" class="btn btn-sm btn-subtle" title="Paste TSV/CSV data into Matrix B">PASTE</button>
+              <button id="btn-view-b-dense" class="btn btn-sm btn-subtle active" aria-pressed="true">GRID</button>
+              <button id="btn-view-b-triplets" class="btn btn-sm btn-subtle" aria-pressed="false">TRIPLETS</button>
+            </div>
+          </div>
+
+          <div id="container-b-grid" class="matrix-scroll-wrapper" tabindex="0" role="region" aria-label="Matrix B interactive drafting grid">
+            <table id="table-matrix-b" class="matrix-grid-table" aria-label="Matrix B interactive drafting grid">
+              <!-- Rendered dynamically by app.js -->
+            </table>
+          </div>
+
+          <div id="container-b-triplets" class="triplet-table-wrapper" style="display: none; padding: var(--space-sm);" tabindex="0" role="region" aria-label="Matrix B triplets stream">
+            <table class="triplet-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>ROW (1-BASED)</th>
+                  <th>COL (1-BASED)</th>
+                  <th>VALUE</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-matrix-b-triplets">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Operation Command Deck -->
+        <section class="command-deck" aria-label="Matrix Operation Command Deck">
+          <div>
+            <div class="deck-section-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+              <span>1. TRANSFORMATIONS & UNARY OPERATIONS</span>
+            </div>
+            <div class="deck-actions-grid">
+              <button id="op-to-sparse" class="btn btn-primary" title="Compress dense matrix into canonical Triplet list">
+                <span>DENSE → SPARSE</span>
+              </button>
+              <button id="op-to-dense" class="btn" title="Reconstruct full flat 2D grid from Triplet representation">
+                <span>SPARSE → DENSE</span>
+              </button>
+              <button id="op-transpose" class="btn" title="Compute transpose A^T in O(cols + nnz)">
+                <span>TRANSPOSE (Aᵀ)</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="deck-section-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              <span>2. BINARY ARITHMETIC (REQUIRES MATRIX B)</span>
+            </div>
+            <div class="deck-actions-grid">
+              <button id="op-add" class="btn" title="Compute C = A + B in O(nnzA + nnzB)">
+                <span>ADDITION (A + B)</span>
+              </button>
+              <button id="op-multiply" class="btn" title="Compute C = A x B via row-indexed accumulator">
+                <span>MULTIPLY (A × B)</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="deck-section-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+              <span>3. THEORETICAL ANALYSIS & WORKSPACE</span>
+            </div>
+            <div class="deck-actions-grid">
+              <button id="op-analyze" class="btn btn-accent-orange" title="Compute memory footprint and density in C">
+                <span>ANALYZE MEMORY</span>
+              </button>
+              <button id="op-reset" class="btn btn-subtle" title="Clear matrices and return to default state">
+                <span>RESET WORKSPACE</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Result Inspector Panel -->
+        <section class="panel" aria-labelledby="result-panel-title">
+          <div class="panel-header" style="flex-wrap: wrap; gap: var(--space-xs);">
+            <div style="display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap;">
+              <span id="result-panel-title" class="panel-title">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <span>OPERATION RESULT INSPECTOR</span>
+              </span>
+              <span class="panel-tag" id="result-badge">ENGINE STDOUT STREAM</span>
+              <span class="panel-tag stale" id="result-stale-badge" style="display: none;">STALE RESULT</span>
+            </div>
+            <div class="strip-group" style="margin-left: auto;">
+              <button id="btn-export-dense" class="btn btn-sm btn-subtle" title="Export dense result as CSV file">CSV GRID</button>
+              <button id="btn-export-triplets" class="btn btn-sm btn-subtle" title="Export sparse triplets as CSV file">CSV TRIPLETS</button>
+              <button id="btn-copy-triplets" class="btn btn-sm btn-subtle" title="Copy triplets stream to clipboard">COPY</button>
+            </div>
+          </div>
+
+          <!-- Switchable Tabs -->
+          <nav class="tabs-nav" aria-label="Result Views">
+            <button class="tab-btn active" data-tab="tab-dense">DENSE MATRIX</button>
+            <button class="tab-btn" data-tab="tab-triplets">TRIPLET STREAM</button>
+            <button class="tab-btn" data-tab="tab-stats">STATISTICS</button>
+            <button class="tab-btn" data-tab="tab-memory">MEMORY METRICS</button>
+          </nav>
+
+          <!-- Tab Contents -->
+          <div id="tab-dense" class="tab-content active">
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+              </svg>
+              <span class="empty-state-title">AWAITING OPERATION STREAM</span>
+              <p class="empty-state-desc">Select an operation from the Command Deck above. The compiled C CLI engine will execute the mathematics and render the output matrix here.</p>
+            </div>
+          </div>
+
+          <div id="tab-triplets" class="tab-content">
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              <span class="empty-state-title">NO TRIPLETS TO DISPLAY</span>
+              <p class="empty-state-desc">When a sparse matrix operation completes, canonical row-major sorted (row, col, value) triplets will appear here.</p>
+            </div>
+          </div>
+
+          <div id="tab-stats" class="tab-content">
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span class="empty-state-title">DIAGNOSTICS IDLE</span>
+              <p class="empty-state-desc">Dimensions, non-zero element count, zero count, and execution timings will be recorded upon computation.</p>
+            </div>
+          </div>
+
+          <div id="tab-memory" class="tab-content">
+            <div class="empty-state">
+              <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+              <span class="empty-state-title">MEMORY COMPARISON PENDING</span>
+              <p class="empty-state-desc">Run Memory Analysis to compare 64-bit dense payload vs 16-byte Triplet storage.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Right Column: Memory Telemetry & Analysis -->
+      <aside class="sidebar-inspector">
+
+        <!-- Density & Memory Analysis (Dark Telemetry Display) -->
+        <section class="memory-telemetry-panel" aria-labelledby="telemetry-panel-title">
+          <div class="telemetry-header">
+            <div style="display: flex; align-items: center; gap: var(--space-xs);">
+              <span id="telemetry-panel-title" class="telemetry-title">THEORETICAL MEMORY ANALYSIS</span>
+              <span id="telemetry-stale-badge" class="panel-tag stale" style="display: none; background-color: var(--accent-orange-subtle); color: var(--accent-orange); border-color: var(--accent-orange);">STALE</span>
+            </div>
+            <span class="panel-tag" style="background-color: var(--surface-dark-card); color: var(--accent-orange); border-color: var(--border-dark);">C EVALUATION</span>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="metric-card">
+              <span class="metric-label">DIMENSIONS</span>
+              <span id="metric-dims" class="metric-value">3 × 3</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">TOTAL CELLS</span>
+              <span id="metric-total-cells" class="metric-value">9</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">NONZERO (NNZ)</span>
+              <span id="metric-nnz" class="metric-value highlight">2</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">ZERO COUNT</span>
+              <span id="metric-zeros" class="metric-value">7</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">DENSITY</span>
+              <span id="metric-density" class="metric-value">22.22%</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">SPARSITY</span>
+              <span id="metric-sparsity" class="metric-value">77.78%</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">DENSE PAYLOAD</span>
+              <span id="metric-dense-bytes" class="metric-value">72 B</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">SPARSE PAYLOAD</span>
+              <span id="metric-sparse-bytes" class="metric-value">32 B</span>
+            </div>
+          </div>
+
+          <!-- Comparison Scale -->
+          <div class="comparison-scale">
+            <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text-dark-secondary);">
+              <span>SPARSE FOOTPRINT</span>
+              <span id="metric-savings-badge" style="color: #38E090;">SAVINGS: 40 B (55.56%)</span>
+            </div>
+            <div class="scale-bar-track" role="progressbar" aria-valuenow="44" aria-valuemin="0" aria-valuemax="100">
+              <div id="scale-bar-fill" class="scale-bar-fill" style="width: 44.4%;"></div>
+            </div>
+          </div>
+
+          <div class="telemetry-footer">
+            * Theoretical model: 8 B/cell dense vs 16 B/entry sparse (two 32-bit indices + double). Excludes heap metadata &amp; allocator overhead.
+          </div>
+        </section>
+
+      </aside>
+
+    </div>
+
+    <!-- ── 3. Bottom Activity & Telemetry Bar ──────────────────────────── -->
+    <footer class="activity-bar" role="contentinfo">
+      <div class="activity-status">
+        <span id="activity-pill" class="status-pill idle">IDLE</span>
+        <span id="activity-message">ZEROFORM Studio shell ready. Subprocess boundary verified.</span>
+      </div>
+      <div>
+        <span id="activity-timestamp">SYSTEM NOMINAL</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- ── 4. Accessible Architectural Documentation Dialog ─────────────── -->
+  <dialog id="help-dialog" class="doc-modal" aria-labelledby="help-dialog-title" aria-modal="true">
+    <div class="modal-header">
+      <h2 id="help-dialog-title" class="panel-title" style="font-size: 13px;">
+        ZEROFORM — ARCHITECTURAL & PROTOCOL SPECIFICATION
+      </h2>
+      <button id="btn-close-help" class="btn btn-sm btn-subtle" aria-label="Close specification dialog">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <h3>1. Coordinate Conventions</h3>
+      <p>
+        The visual workbench displays <strong>1-based user coordinates</strong> $(r \in [1, R], c \in [1, C])$ familiar to mathematicians and engineers. The frontend automatically translates these into <strong>0-based indices</strong> $(r \in [0, R-1], c \in [0, C-1])$ before submitting requests to the backend API and C CLI engine.
+      </p>
+
+      <h3>2. Triplet Representation (DOK)</h3>
+      <p>
+        A sparse matrix stores only its nonzero elements as a dynamic array of triplets:
+      </p>
+      <pre style="background: var(--surface-subtle); padding: 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">
+typedef struct {
+    size_t row;
+    size_t col;
+    double value;
+} Triplet;</pre>
+      <p>
+        Entries are kept in canonical row-major sorted order. Reading an implicit zero coordinate returns <code>0.0</code> in $O(\log \text{NNZ})$ time via binary search.
+      </p>
+
+      <h3>3. Theoretical Memory Payload Model</h3>
+      <ul>
+        <li><strong>Dense Theoretical Payload</strong>: $\text{Total Cells} \times 8\text{ bytes}$ (flat contiguous IEEE 754 double array).</li>
+        <li><strong>Sparse Theoretical Payload</strong>: $\text{NNZ} \times 16\text{ bytes}$ (fixed theoretical assumption: two 32-bit indices + 8-byte double).</li>
+        <li><strong>Breakeven Point</strong>: Sparse representation consumes less theoretical memory when $\text{density} < 50\%$. Payloads are equal at exactly 50%.</li>
+        <li><strong>Runtime C Storage vs Theoretical Model</strong>: While the course theoretical model evaluates idealized algorithmic payload sizes (16 bytes per nonzero entry), actual compiled C in-memory storage allocates dynamic array capacity multiplied by <code>sizeof(Triplet)</code> (where <code>sizeof(Triplet)</code> = 24 bytes on 64-bit platforms due to 64-bit <code>size_t</code> coordinates), together with matrix metadata (dimensions, count, capacity, data pointer) and dynamic array header structures. Actual process memory also entails heap allocation headers and OS runtime page overhead that the theoretical model does not measure.</li>
+      </ul>
+
+      <h3>4. Process Isolation & Subprocess Boundary</h3>
+      <p>
+        Python and Flask never perform matrix arithmetic. All data structures and linear algebra algorithms execute strictly within the compiled C11 engine (<code>zeroform.exe</code>) via a deterministic line-oriented protocol over <code>stdin</code> and <code>stdout</code>.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button id="btn-dismiss-help" class="btn btn-primary btn-sm">CLOSE SPEC</button>
+    </div>
+  </dialog>
+
+  <!-- ── 5. Accessible Reset Confirmation Dialog ────────────────────────── -->
+  <dialog id="reset-dialog" class="doc-modal" aria-labelledby="reset-dialog-title" aria-modal="true">
+    <div class="modal-header">
+      <h2 id="reset-dialog-title" class="panel-title" style="font-size: 13px;">
+        CONFIRM WORKSPACE RESET
+      </h2>
+      <button id="btn-close-reset" class="btn btn-sm btn-subtle" aria-label="Cancel reset">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to reset the workbench workspace?</p>
+      <p style="color: var(--text-secondary); font-size: 12px;">
+        This will clear all edited cells in Matrix A and Matrix B, remove current calculation results, and return the workbench to its default empty state.
+      </p>
+    </div>
+    <div class="modal-footer" style="gap: var(--space-xs);">
+      <button id="btn-cancel-reset" class="btn btn-sm btn-subtle">CANCEL</button>
+      <button id="btn-confirm-reset" class="btn btn-sm btn-danger">RESET WORKSPACE</button>
+    </div>
+  </dialog>
+
+  <!-- ── 6. Accessible TSV/CSV Paste Dialog ────────────────────────────── -->
+  <dialog id="paste-dialog" class="doc-modal" aria-labelledby="paste-dialog-title" aria-modal="true">
+    <div class="modal-header">
+      <h2 id="paste-dialog-title" class="panel-title" style="font-size: 13px;">
+        PASTE MATRIX DATA (<span id="paste-target-label">MATRIX A</span>)
+      </h2>
+      <button id="btn-close-paste" class="btn btn-sm btn-subtle" aria-label="Close paste dialog">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 12px; color: var(--text-secondary);">
+        Paste tab-separated (TSV) or comma-separated (CSV) values below. All rows must have equal column counts and contain finite numbers.
+      </p>
+      <textarea id="paste-textarea" class="form-input" style="height: 140px; font-family: var(--font-mono); font-size: 12px; padding: 8px; resize: vertical;" placeholder="1.0  0.0  2.5&#10;0.0  3.2  0.0"></textarea>
+      <div id="paste-error-msg" style="display: none; color: var(--accent-red); font-family: var(--font-mono); font-size: 11px;"></div>
+    </div>
+    <div class="modal-footer" style="gap: var(--space-xs);">
+      <button id="btn-cancel-paste" class="btn btn-sm btn-subtle">CANCEL</button>
+      <button id="btn-apply-paste" class="btn btn-sm btn-primary">APPLY DATA</button>
+    </div>
+  </dialog>
+
+  <!-- Client-side Application Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

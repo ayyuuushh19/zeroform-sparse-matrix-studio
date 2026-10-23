@@ -1,0 +1,38 @@
+# Version control
+.git
+.github
+.gitignore
+
+# Python virtual environments & bytecode
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+
+# Compiled Windows binaries and object files
+*.exe
+*.o
+*.d
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Local editor and environment files
+.vscode
+.idea
+.env
+.env.*
+*.local
+*.log
+*.tmp
+*.bak
+
+# Docker files
+Dockerfile
+.dockerignore
